@@ -1,0 +1,10 @@
+---
+bundle:
+  name: bundle-centos-backbee
+  img_base: ad12daf1-044b-4b83-8902-2847b33feb34
+  properties:
+    img_os: CentOS
+    cw_bundle: BACKBEE
+    cw_origin: Cloudwatt
+
+packer_file: build-yum.packer.json

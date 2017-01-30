@@ -1,0 +1,111 @@
+---
+#
+##
+### Written by the CAT (Cloudwatt Automation Team)
+##
+#
+- hosts: local
+  user: cloud
+  become: true
+
+  vars:
+    db_password: "{{ lookup('password', 'passwordfile chars=ascii_letters') }}"
+
+  tasks:
+
+    - selinux:
+        state: disabled
+
+    - shell: setenforce 0
+
+    - name: upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: packages installed
+      yum:
+        name={{ item }}
+        state=present
+      with_items:
+        - httpd
+        - mariadb-server
+        - php
+        - php-mysqlnd
+        - php-gd
+        - php-xml
+        - git
+        - wget
+        - MySQL-python
+
+    - name: git clone
+      git:
+        repo: git://github.com/backbee/backbee-cms.git
+        dest: /home/www
+        version: v1.2.1
+
+    - shell: wget https://getcomposer.org/composer.phar && mv composer.phar /usr/bin/composer && chmod +x /usr/bin/composer
+    - shell: echo "date.timezone = Europe/Paris" >> /etc/php.ini
+    - shell: date +%s | sha256sum | base64 | head -c 32 > password.txt
+
+    - composer: 
+        command: install
+        working_dir: /home/www
+
+    - name: httpd service started
+      systemd: name=httpd state=started
+
+    - name: httpd service enabled
+      systemd: name=httpd enabled=yes
+
+    - name: mariadb service started
+      systemd: name=mariadb state=started
+
+    - name: mariadb service enabled
+      systemd: name=mariadb enabled=yes
+
+    - name: mysql database is created
+      mysql_db:
+        name=backbee
+        state=present
+
+    - name: mysql user is created
+      mysql_user:
+        name: backbee
+        password: "{{ db_password}}"
+        priv: '*.*:ALL'
+  
+    - shell: echo "{{ db_password}}" > /home/www/public/password.txt
+
+    - name: httpd site configuration
+      copy:
+        src=files/backbee.httpd.conf
+        dest=/etc/httpd/conf.d/default-backbee.conf
+        owner=root
+        group=root
+        mode=0644
+
+    - name: Add bash for delete password
+      copy:
+        src=files/delete_password.sh
+        dest=/opt/delete_password.sh
+        owner=root
+        group=root
+        mode=0755
+
+    - shell: echo "* * * * * root bash /opt/delete_password.sh" >> /etc/crontab
+
+    - name: backbee content has correct ownership
+      file:
+        path="{{ item }}"
+        state=directory
+        owner=apache
+        group=apache
+        recurse=yes
+      with_items:
+        - /home/www
+
+    - name: restart httpd
+      systemd:
+        name=httpd
+        state=restarted
