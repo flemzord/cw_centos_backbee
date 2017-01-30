@@ -9,8 +9,7 @@ before_install:
   - pip install python-openstackclient python-glanceclient ansible
   - sudo apt-get install -y unzip && wget https://releases.hashicorp.com/packer/0.12.2/packer_0.12.2_linux_amd64.zip && unzip packer_0.12.2_linux_amd64.zip
   - sudo mv packer /usr/bin/packer && chmod +x /usr/bin/packer
-  - packer -v && ansible --version && openstack --version
-
+  
 script:
   - ansible-playbook build.playbook.yml -e build-vars.yml
 
