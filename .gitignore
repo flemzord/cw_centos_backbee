@@ -91,3 +91,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+
+*.retry
+target/
+output/

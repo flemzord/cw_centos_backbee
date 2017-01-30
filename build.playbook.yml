@@ -12,7 +12,6 @@
       img_base: IMG_BASE
 
     final_glance_options: "--min-disk 20"
-    vm_flavor: "16"
     bundle_target_name: "{{ bundle.name }}-{{ ansible_date_time.date }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
     packer_file: "build.packer.json"
 
@@ -21,7 +20,7 @@
       file: path=target/{{ bundle.name }} state=directory
 
     - name: use packer to build server image
-      shell: "packer build -var 'bundle_path={{ bundle.name }}' -var 'source_image={{ bundle.img_base }}' -var 'image_name={{ bundle_target_name }}' -var 'factory_flavor={{ vm_flavor }}' {{ packer_file }}"
+      shell: "packer build -var 'bundle_path=/' -var 'source_image={{ bundle.img_base }}' -var 'image_name={{ bundle_target_name }}' {{ packer_file }}"
       register: packer_build
       ignore_errors: true
 
@@ -60,11 +59,6 @@
     - name: check if output is expected
       stat: path="{{ bundle.name }}/output"
       register: expected_output
-
-    - name: generate outputs
-      when: expected_output.stat.exists
-      template: src={{ item }} dest=target/{{ item | replace('.j2', '') }}
-      with_lines: "find {{ bundle.name }}/output -name '*.j2'"
 
     - name: yell the success of the build process. May the Great Coder be praised.
       debug: msg="Image build is a success. The image {{ result_img_id }} is now in your glance images."

@@ -12,5 +12,5 @@ before_install:
 
 script:
   - sudo rm /etc/ansible/ansible.cfg
-  - ansible-playbook build.playbook.yml -e build-vars.yml -i ansible_local_inventory -vv
+  - ansible-playbook build.playbook.yml -e @build-vars.yml -i ansible_local_inventory -vv
 
