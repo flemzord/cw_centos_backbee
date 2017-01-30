@@ -11,5 +11,6 @@ before_install:
   - sudo mv packer /usr/bin/packer && chmod +x /usr/bin/packer
 
 script:
-  - ansible-playbook build.playbook.yml -e build-vars.yml -i ansible_local_inventory -vv
+  - cat /etc/ansible/ansible.cfg
+  #- ansible-playbook build.playbook.yml -e build-vars.yml -i ansible_local_inventory -vv
 
